@@ -9,11 +9,11 @@ import getopt
 def argcheck(opts):
     print opts
 
-def main(args):
+def main(argv):
     try:
-        opt, opts = getopt.getopt(sys.args[1:], "", ["client", "server", "listen-to=", "server-addr="])
+        opts, args = getopt.getopt(argv[1:], "", ["client", "server", "listen-to=", "server-addr="])
     except getopt.GetoptError, err:
-        usage(args[0])
+        usage(argv[0])
         return True
 
     options = argcheck(opts)
@@ -27,7 +27,7 @@ def usage(name):
     print """%s <options>
     --client                run in client mode
     --server                run in server mode
-    --listen-to <port  >    listen to the port <port> (only for server mode)
+    --listen-to <port>      listen to the port <port> (only for server mode)
     --server-addr <server>  set <server> as the server to connect (only for client mode)
     """ % name
 
