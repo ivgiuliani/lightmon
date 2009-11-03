@@ -5,6 +5,7 @@ reports back to the server.
 """
 
 import sched
+import sys
 import time
 
 from lightmon import config
@@ -35,4 +36,8 @@ def run():
     Start the client timeline
     """
     client = Client()
-    client.run()
+
+    try:
+        client.run()
+    except KeyboardInterrupt:
+        sys.stderr.write("goodbye Captain\n")
