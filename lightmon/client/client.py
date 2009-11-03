@@ -55,8 +55,11 @@ class Client(object):
         # TODO: run the real job
 
         # reschedule the job if requested
-        if self.jobs.haskey(name) and self.jobs[name].repeat:
-            self.scheduler.enter(self.jobs[name], 1, self.runJob, (name, ))
+        if self.jobs.has_key(name) and self.jobs[name].repeat:
+            self.scheduler.enter(
+                    self.jobs[name].delay, # delay in seconds
+                    1,                     # priority (unused)
+                    self.runJob, (name, )) # job's name
 
     def run(self):
         "Run the client"
