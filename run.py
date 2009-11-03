@@ -45,7 +45,7 @@ def main(argv):
         usage(argv[0])
         return True
 
-    if not args:
+    if not opts:
         usage(argv[0])
         return True
 

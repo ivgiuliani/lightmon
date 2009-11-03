@@ -4,5 +4,35 @@ Indeed, service checking classes are run on fixed time intervals as well as the
 reports back to the server.
 """
 
+import sched
+import time
+
+from lightmon import config
+
+class Client(object):
+    """
+    The main client class. Here we handle the time scheduled events
+    (included the lightmon process itself)
+    """
+    def __init__(self):
+        # schedule the lightmon process as every ``SELF_CHECK_EVERY``
+        self.scheduler = sched.scheduler(time.time, time.sleep)
+        self.scheduler.enter(config.SELF_CHECK_EVERY, 1, self.controller, ())
+
+    def controller(self):
+        """
+        Control if there are stale threads that needs to be killed
+        """
+        print 'not yet: controller'
+        # reschedule ourselves every SELF_CHECK_EVERY seconds
+        self.scheduler.enter(config.SELF_CHECK_EVERY, 1, self.controller, ())
+
+    def run(self):
+        self.scheduler.run()
+
 def run():
-    print "client"
+    """
+    Start the client timeline
+    """
+    client = Client()
+    client.run()
