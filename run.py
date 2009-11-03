@@ -45,6 +45,10 @@ def main(argv):
         usage(argv[0])
         return True
 
+    if not args:
+        usage(argv[0])
+        return True
+
     options = argcheck(opts)
     check = options.check()
     if not check[0]:
