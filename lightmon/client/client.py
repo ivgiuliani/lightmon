@@ -4,6 +4,7 @@ Indeed, service checking classes are run on fixed time intervals as well as the
 reports back to the server.
 """
 
+import bisect
 import sched
 import time
 
@@ -46,13 +47,15 @@ class Client(object):
         "Add a new check job"
         assert isinstance(job, jobs.Job)
 
-        # append a job to the job list, it's sequence number identifies it
-        # (which happens to match to len(self.jobs) - 1 after an append)
-        self.jobs.append(job)
-
         if self.removed_jobs_idx:
-            pos = self.removed_jobs_idx.pop()
+            # reuse idx if possible
+            pos = self.removed_jobs_idx[0]
+            self.jobs[pos] = job
+            del self.removed_jobs_idx[0]
         else:
+            # append a job to the job list, it's sequence number identifies it
+            # (which happens to match to len(self.jobs) - 1 after an append)
+            self.jobs.append(job)
             pos = len(self.jobs) - 1
 
         self.scheduler.enter(job.delay, 1, self.runJob, (pos, ))
@@ -69,7 +72,7 @@ class Client(object):
             return
             
         # TODO: run the real job
-        print "[run %s]" % self.jobs[jobnum].name
+        print "[run %s/%d]" % (self.jobs[jobnum].name, jobnum)
 
         # reschedule the job if requested
         if self.jobs[jobnum].repeat:
@@ -84,7 +87,7 @@ class Client(object):
     def deleteJob(self, jobnum):
         "Deletes a job from the job list"
         self.jobs[jobnum] = None
-        self.removed_jobs_idx.insert(0, jobnum)
+        bisect.insort(self.removed_jobs_idx, jobnum)
 
     def run(self):
         "Run the client"
