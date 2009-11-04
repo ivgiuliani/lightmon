@@ -5,6 +5,9 @@ Run script
 
 import sys
 import getopt
+import logging
+
+from lightmon import config
 
 def argcheck(opts):
     class Options:
@@ -13,12 +16,14 @@ def argcheck(opts):
         server = False
         listen_to = "127.0.0.1"
         server_addr = "127.0.0.1"
+        logging_level = logging.INFO
 
         def check(self):
             client = self.client
             server = self.server
             listen_to = self.listen_to
             server_addr = self.server_addr
+            logging_level = self.logging_level
 
             if client and server or not (client or server):
                 return (False, "Cannot be both client and server simultaneosly")
@@ -36,11 +41,17 @@ def argcheck(opts):
             o.listen_to = value
         elif name == "--server-addr":
             o.server_addr = value
+        elif name == "--logging-level":
+            values = {
+                'DEBUG': logging.DEBUG,
+                'INFO': logging.INFO,
+            }
+            o.logging_level = values[value]
     return o
 
 def main(argv):
     try:
-        opts, args = getopt.getopt(argv[1:], "", ["client", "server", "listen-to=", "server-addr="])
+        opts, args = getopt.getopt(argv[1:], "", ["client", "server", "listen-to=", "server-addr=", "logging-level="])
     except getopt.GetoptError, err:
         usage(argv[0])
         return True
@@ -55,6 +66,7 @@ def main(argv):
         usage(argv[0], check[1])
         return True
 
+    config.LOGGING_LEVEL = options.logging_level
     if options.client:
         from lightmon.client import runner
         runner.run()
@@ -74,6 +86,7 @@ def usage(name, errstring=None):
     --server                run in server mode
     --listen-to <port>      listen to the port <port> (only for server mode)
     --server-addr <server>  set <server> as the server to connect (only for client mode)
+    --logging-level <level> set the logging level as <level> (can be INFO or DEBUG)
     """ % name
 
 if __name__ == '__main__':
