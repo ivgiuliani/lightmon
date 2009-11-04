@@ -9,7 +9,7 @@ def run():
     """
     cl = client.Client()
 
-    job = Job("test job", delay=20, repeat=True)
+    job = Job("test job", delay=10, repeat=True)
     cl.addJob(job)
 
     try:

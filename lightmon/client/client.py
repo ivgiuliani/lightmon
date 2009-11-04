@@ -20,7 +20,7 @@ class Client(object):
         self.scheduler = sched.scheduler(timefunc, delayfunc)
         self.scheduler.enter(config.SELF_CHECK_EVERY, 1, self.controller, ())
 
-        self.jobs = {}
+        self.jobs = []
 
     def controller(self):
         """
@@ -42,24 +42,29 @@ class Client(object):
         "Add a new check job"
         assert isinstance(job, jobs.Job)
 
-        # XXX: the name might not be the best thing as an index due to collisions
-        self.jobs[job.name] = job
-        self.scheduler.enter(job.delay, 1, self.runJob, (job.name, ))
+        # append a job to the job list, it's sequence number identifies it
+        # (which happens to match to len(self.jobs) - 1 after an append)
+        self.jobs.append(job)
 
-    def runJob(self, name):
+        self.scheduler.enter(job.delay, 1, self.runJob, (len(self.jobs) - 1, ))
+
+    def runJob(self, jobnum):
         """
         Runs a job. This method gets called by the scheduler and might be
         killed if it takes too much time.
         """
-        print "[run %s]" % name
+        print "[run %s]" % self.jobs[jobnum].name
         # TODO: run the real job
 
         # reschedule the job if requested
-        if self.jobs.has_key(name) and self.jobs[name].repeat:
+        if self.jobs[jobnum] and self.jobs[jobnum].repeat:
             self.scheduler.enter(
-                    self.jobs[name].delay, # delay in seconds
+                    self.jobs[jobnum].delay, # delay in seconds
                     1,                     # priority (unused)
-                    self.runJob, (name, )) # job's name
+                    self.runJob, (jobnum, )) # job's name
+        else:
+            # else delete the job from the job list
+            self.jobs[jobnum] = None
 
     def run(self):
         "Run the client"
