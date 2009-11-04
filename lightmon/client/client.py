@@ -13,6 +13,19 @@ import time
 from lightmon import config
 from lightmon import jobs
 
+class Controller(jobs.Job):
+    """
+    The thread controller is a check job itself
+    """
+    logger = logging.getLogger(__name__)
+
+    def run(self):
+        """
+        Control if there are stale threads that needs to be killed
+        """
+        self.logger.debug("not yet: controller")
+
+
 class Client(object):
     """
     The main client class. Here we handle the time scheduled events
@@ -21,9 +34,7 @@ class Client(object):
     logger = logging.getLogger(__name__)
 
     def __init__(self, timefunc=time.time, delayfunc=time.sleep):
-        # schedule the lightmon controller process as every ``SELF_CHECK_EVERY``
         self.scheduler = sched.scheduler(timefunc, delayfunc)
-        self.scheduler.enter(config.SELF_CHECK_EVERY, 1, self.controller, ())
 
         self.jobs = []
 
@@ -31,14 +42,11 @@ class Client(object):
         # rather than let the job list grow indefinitely
         self.removed_jobs_idx = []
 
-    def controller(self):
-        """
-        Control if there are stale threads that needs to be killed
-        """
-        # reschedule ourselves every SELF_CHECK_EVERY seconds
-        # self.checkJobs()
-        self.logger.debug("not yet: controller")
-        self.scheduler.enter(config.SELF_CHECK_EVERY, 1, self.controller, ())
+        # schedule the thread controlling system
+        self.addJob(Controller(
+            name="Controller",
+            delay=config.SELF_CHECK_EVERY,
+            repeat=True))
 
     def checkJobs(self):
         """
