@@ -5,6 +5,7 @@ reports back to the server.
 """
 
 import bisect
+import logging
 import sched
 import threading
 import time
@@ -17,6 +18,8 @@ class Client(object):
     The main client class. Here we handle the time scheduled events
     (included the lightmon process itself)
     """
+    logger = logging.getLogger(__name__)
+
     def __init__(self, timefunc=time.time, delayfunc=time.sleep):
         # schedule the lightmon controller process as every ``SELF_CHECK_EVERY``
         self.scheduler = sched.scheduler(timefunc, delayfunc)
@@ -34,7 +37,7 @@ class Client(object):
         """
         # reschedule ourselves every SELF_CHECK_EVERY seconds
         # self.checkJobs()
-        print "not yet: controller"
+        self.logger.debug("not yet: controller")
         self.scheduler.enter(config.SELF_CHECK_EVERY, 1, self.controller, ())
 
     def checkJobs(self):
@@ -73,7 +76,7 @@ class Client(object):
             return
             
         # TODO: run the real job
-        print "[run %s/%d]" % (self.jobs[jobnum].name, jobnum)
+        self.logger.info("[run %s/%d]" % (self.jobs[jobnum].name, jobnum))
         self._runThread(jobnum)
 
         # reschedule the job if requested
