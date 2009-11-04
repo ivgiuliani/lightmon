@@ -47,7 +47,7 @@ class Client(object):
         self.runjobs = []
 
         # schedule the thread controlling system
-        self.enter(config.SELF_CHECK_EVERY, 1, self.controller, ())
+        self.scheduler.enter(config.SELF_CHECK_EVERY, 1, self.controller, ())
 
     def checkJobs(self):
         """
