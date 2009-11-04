@@ -11,3 +11,6 @@ LOGGING_LEVEL = logging.INFO
 
 # log file
 LOGGING_FILE = "lightmon.log"
+
+# maximum time (in seconds) that threads can use to execute
+MAX_CHECK_EXECUTION_TIME = 15

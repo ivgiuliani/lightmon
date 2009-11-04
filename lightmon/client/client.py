@@ -13,17 +13,17 @@ import time
 from lightmon import config
 from lightmon import jobs
 
-class Controller(jobs.Job):
-    """
-    The thread controller is a check job itself
-    """
-    logger = logging.getLogger(__name__)
+class RunningJob(object):
+    def __init__(self, job):
+        self.job = job
+        self.running_since = time.time()
+        self.thread = None
 
-    def run(self):
-        """
-        Control if there are stale threads that needs to be killed
-        """
-        self.logger.debug("not yet: controller")
+    def start(self):
+        thread = threading.Thread(target=self.job.run,
+                                  name=self.job.name)
+        self.thread = thread
+        thread.start()
 
 
 class Client(object):
@@ -42,11 +42,12 @@ class Client(object):
         # rather than let the job list grow indefinitely
         self.removed_jobs_idx = []
 
+        # a list of jobs currently running (this list gets cleaned
+        # up by the controller)
+        self.runjobs = []
+
         # schedule the thread controlling system
-        self.addJob(Controller(
-            name="Controller",
-            delay=config.SELF_CHECK_EVERY,
-            repeat=True))
+        self.enter(config.SELF_CHECK_EVERY, 1, self.controller, ())
 
     def checkJobs(self):
         """
@@ -54,6 +55,17 @@ class Client(object):
         execution twice (or more) kill the older job and report a failure
         """
         raise NotImplementedError
+
+    def controller(self):
+        "Controls the thread execution workflow"
+        now = time.time()
+        for runjob in self.runjobs:
+            if (now - runjob.running_since) > MAX_CHECK_EXECUTION_TIME:
+                # thread has exceeded execution time
+                pass
+
+        # reschedule ourselves
+        self.scheduler.enter(config.SELF_CHECK_EVERY, 1, self.controller, ())
 
     def addJob(self, job):
         "Add a new check job"
@@ -106,8 +118,10 @@ class Client(object):
         "Executes the ``jobnum`` thread"
         job = self.jobs[jobnum]
 
-        thread = threading.Thread(target=job.run, name=job.name)
-        thread.start()
+        runjob = RunningJob(job)
+        runjob.start()
+
+        self.runjobs.append(runjob)
 
     def run(self):
         "Run the client"
