@@ -22,6 +22,10 @@ class Client(object):
 
         self.jobs = []
 
+        # a list of removed jobs indexes, so if possible reuse deleted idx
+        # rather than let the job list grow indefinitely
+        self.removed_jobs_idx = []
+
     def controller(self):
         """
         Control if there are stale threads that needs to be killed
@@ -46,25 +50,41 @@ class Client(object):
         # (which happens to match to len(self.jobs) - 1 after an append)
         self.jobs.append(job)
 
-        self.scheduler.enter(job.delay, 1, self.runJob, (len(self.jobs) - 1, ))
+        if self.removed_jobs_idx:
+            pos = self.removed_jobs_idx.pop()
+        else:
+            pos = len(self.jobs) - 1
+
+        self.scheduler.enter(job.delay, 1, self.runJob, (pos, ))
 
     def runJob(self, jobnum):
         """
         Runs a job. This method gets called by the scheduler and might be
         killed if it takes too much time.
         """
-        print "[run %s]" % self.jobs[jobnum].name
+        # first thing check if the job is still in the list (might have been
+        # deleted while we were waiting for it)
+        if not self.jobs[jobnum]:
+            # in that case just ignore it
+            return
+            
         # TODO: run the real job
+        print "[run %s]" % self.jobs[jobnum].name
 
         # reschedule the job if requested
-        if self.jobs[jobnum] and self.jobs[jobnum].repeat:
+        if self.jobs[jobnum].repeat:
             self.scheduler.enter(
                     self.jobs[jobnum].delay, # delay in seconds
-                    1,                     # priority (unused)
+                    1,                       # priority (unused)
                     self.runJob, (jobnum, )) # job's name
         else:
             # else delete the job from the job list
-            self.jobs[jobnum] = None
+            self.deleteJob(jobnum)
+
+    def deleteJob(self, jobnum):
+        "Deletes a job from the job list"
+        self.jobs[jobnum] = None
+        self.removed_jobs_idx.insert(0, jobnum)
 
     def run(self):
         "Run the client"
