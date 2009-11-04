@@ -8,3 +8,7 @@ class Job(object):
     def run(self):
         raise NotImplementedError(
                 "run() method not implemented for %s check" % self.name)
+
+class DummyJob(Job):
+    def run(self):
+        print("dummy!")

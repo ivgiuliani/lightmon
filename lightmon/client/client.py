@@ -6,6 +6,7 @@ reports back to the server.
 
 import bisect
 import sched
+import threading
 import time
 
 from lightmon import config
@@ -73,6 +74,7 @@ class Client(object):
             
         # TODO: run the real job
         print "[run %s/%d]" % (self.jobs[jobnum].name, jobnum)
+        self._runThread(jobnum)
 
         # reschedule the job if requested
         if self.jobs[jobnum].repeat:
@@ -88,6 +90,13 @@ class Client(object):
         "Deletes a job from the job list"
         self.jobs[jobnum] = None
         bisect.insort(self.removed_jobs_idx, jobnum)
+
+    def _runThread(self, jobnum):
+        "Executes the ``jobnum`` thread"
+        job = self.jobs[jobnum]
+
+        thread = threading.Thread(target=job.run, name=job.name)
+        thread.start()
 
     def run(self):
         "Run the client"

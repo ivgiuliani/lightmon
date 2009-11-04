@@ -1,7 +1,7 @@
 import sys
 
 from lightmon.client import client
-from lightmon.jobs import Job
+from lightmon.jobs import DummyJob
 
 def run():
     """
@@ -9,7 +9,7 @@ def run():
     """
     cl = client.Client()
 
-    job = Job("test job", delay=10, repeat=True)
+    job = DummyJob("test job", delay=10, repeat=True)
     cl.addJob(job)
 
     try:
