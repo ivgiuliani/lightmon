@@ -70,6 +70,7 @@ class Client(object):
 
     def controller(self):
         "Controls the thread execution workflow"
+        self.logger.debug("controller started")
         now = time.time()
         for runjob in self.runjobs:
             if (now - runjob.running_since) > config.MAX_CHECK_EXECUTION_TIME:
