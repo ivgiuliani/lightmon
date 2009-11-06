@@ -72,7 +72,7 @@ class Client(object):
         "Controls the thread execution workflow"
         now = time.time()
         for runjob in self.runjobs:
-            if (now - runjob.running_since) > MAX_CHECK_EXECUTION_TIME:
+            if (now - runjob.running_since) > config.MAX_CHECK_EXECUTION_TIME:
                 # thread has exceeded execution time
                 runjob.stop()
 
