@@ -14,14 +14,17 @@ from lightmon import config
 from lightmon import jobs
 
 class RunningJob(object):
-    """
-    A job that is running in memory
-    """
+    "A job that is running in memory"
 
     def __init__(self, job):
         self.job = job
         self.running_since = time.time()
         self.thread = None
+
+        # result is set as None at the beginning but everything different
+        # (which by the way must be a JobResult object) is interpreted as
+        # valid result
+        self.result = None
 
     def start(self):
         "Start a new job as a thread"
@@ -71,11 +74,15 @@ class Client(object):
     def controller(self):
         "Controls the thread execution workflow"
         self.logger.debug("controller started")
+
         now = time.time()
         for runjob in self.runjobs:
             if (now - runjob.running_since) > config.MAX_CHECK_EXECUTION_TIME:
                 # thread has exceeded execution time
                 runjob.stop()
+            elif runjob.result is not None:
+                # the job has done the work, save and push the result
+                raise NotImplementedError("Result checking is not done yet")
 
         # reschedule ourselves
         self.scheduler.enter(config.SELF_CHECK_EVERY, 1, self.controller, ())
