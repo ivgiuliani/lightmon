@@ -14,16 +14,28 @@ from lightmon import config
 from lightmon import jobs
 
 class RunningJob(object):
+    """
+    A job that is running in memory
+    """
+
     def __init__(self, job):
         self.job = job
         self.running_since = time.time()
         self.thread = None
 
     def start(self):
-        thread = threading.Thread(target=self.job.run,
+        "Start a new job as a thread"
+        thread = threading.Thread(target=self.job.start,
                                   name=self.job.name)
         self.thread = thread
         thread.start()
+
+    def stop(self):
+        """
+        Kills a thread but first tries to free all the resources that have been
+        locked within the thread
+        """
+        raise NotImplementedError
 
 
 class Client(object):
@@ -62,7 +74,7 @@ class Client(object):
         for runjob in self.runjobs:
             if (now - runjob.running_since) > MAX_CHECK_EXECUTION_TIME:
                 # thread has exceeded execution time
-                pass
+                runjob.stop()
 
         # reschedule ourselves
         self.scheduler.enter(config.SELF_CHECK_EVERY, 1, self.controller, ())
