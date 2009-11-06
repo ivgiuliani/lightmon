@@ -5,10 +5,14 @@ class Job(object):
         self.delay = delay
         self.repeat = repeat
 
-    def run(self):
+    def start(self):
         raise NotImplementedError(
-                "run() method not implemented for %s check" % self.name)
+                "start() method not implemented for %s job" % self.name)
+
+    def stop(self):
+        raise NotImplementedError(
+                "stop() method not implemented for %s job" % self.name)
 
 class DummyJob(Job):
-    def run(self):
+    def start(self):
         print("dummy!")
