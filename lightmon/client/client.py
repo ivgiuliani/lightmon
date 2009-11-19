@@ -30,7 +30,9 @@ class RunningJob(object):
         """
         Start a scheduled event
         """
+        self.job.before()
         self.result = self.job.run()
+        self.job.after()
 
     def getResult(self):
         """
