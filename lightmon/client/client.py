@@ -7,7 +7,6 @@ reports back to the server.
 import bisect
 import logging
 import sched
-import threading
 import time
 
 from lightmon import config
@@ -17,9 +16,10 @@ class RunningJob(object):
     "A job that is running in memory"
 
     def __init__(self, job):
+        assert isinstance(job, jobs.Job)
+
         self.job = job
         self.running_since = time.time()
-        self.thread = None
 
         # result is set as None at the beginning but everything different
         # (which by the way must be a JobResult object) is interpreted as
@@ -27,18 +27,16 @@ class RunningJob(object):
         self.result = None
 
     def start(self):
-        "Start a new job as a thread"
-        thread = threading.Thread(target=self.job.start,
-                                  name=self.job.name)
-        self.thread = thread
-        thread.start()
+        """
+        Start a scheduled event
+        """
+        self.result = self.job.run()
 
-    def stop(self):
+    def getResult(self):
         """
-        Kills a thread but first tries to free all the resources that have been
-        locked within the thread
+        Retrieve the job result once the job is done
         """
-        raise NotImplementedError
+        return self.result
 
 
 class Client(object):
@@ -56,36 +54,6 @@ class Client(object):
         # a list of removed jobs indexes, so if possible reuse deleted idx
         # rather than let the job list grow indefinitely
         self.removed_jobs_idx = []
-
-        # a list of jobs currently running (this list gets cleaned
-        # up by the controller)
-        self.runjobs = []
-
-        # schedule the thread controlling system
-        self.scheduler.enter(config.SELF_CHECK_EVERY, 1, self.controller, ())
-
-    def checkJobs(self):
-        """
-        Check the current status of the check jobs, if the same job is in
-        execution twice (or more) kill the older job and report a failure
-        """
-        raise NotImplementedError
-
-    def controller(self):
-        "Controls the thread execution workflow"
-        self.logger.debug("controller started")
-
-        now = time.time()
-        for runjob in self.runjobs:
-            if (now - runjob.running_since) > config.MAX_CHECK_EXECUTION_TIME:
-                # thread has exceeded execution time
-                runjob.stop()
-            elif runjob.result is not None:
-                # the job has done the work, save and push the result
-                raise NotImplementedError("Result checking is not done yet")
-
-        # reschedule ourselves
-        self.scheduler.enter(config.SELF_CHECK_EVERY, 1, self.controller, ())
 
     def addJob(self, job):
         "Add a new check job"
@@ -115,9 +83,10 @@ class Client(object):
             # in that case just ignore it
             return
             
-        # TODO: run the real job
-        self.logger.info("[run %s/%d]" % (self.jobs[jobnum].name, jobnum))
-        self._runThread(jobnum)
+        # run the real job
+        self.logger.info("run [%s/%d]" % (self.jobs[jobnum].name, jobnum))
+        runjob = RunningJob(self.jobs[jobnum])
+        runjob.start()
 
         # reschedule the job if requested
         if self.jobs[jobnum].repeat:
@@ -129,19 +98,16 @@ class Client(object):
             # else delete the job from the job list
             self.deleteJob(jobnum)
 
+        # acquire the result
+        result = runjob.getResult()
+        self.logger.info("job [%s/%d] returned %s" % (self.jobs[jobnum].name,
+                                                      jobnum,
+                                                      result))
+
     def deleteJob(self, jobnum):
         "Deletes a job from the job list"
         self.jobs[jobnum] = None
         bisect.insort(self.removed_jobs_idx, jobnum)
-
-    def _runThread(self, jobnum):
-        "Executes the ``jobnum`` thread"
-        job = self.jobs[jobnum]
-
-        runjob = RunningJob(job)
-        runjob.start()
-
-        self.runjobs.append(runjob)
 
     def run(self):
         "Run the client"
