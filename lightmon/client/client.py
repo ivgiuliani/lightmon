@@ -90,6 +90,8 @@ class Client(object):
         runjob = RunningJob(self.jobs[jobnum])
         runjob.start()
 
+        # TODO: process the result
+
         # reschedule the job if requested
         if self.jobs[jobnum].repeat:
             self.scheduler.enter(
