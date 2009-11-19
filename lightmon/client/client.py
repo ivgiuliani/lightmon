@@ -57,6 +57,8 @@ class Client(object):
         # rather than let the job list grow indefinitely
         self.removed_jobs_idx = []
 
+        self.logger.info("client started on %s" % time.asctime())
+
     def addJob(self, job):
         "Add a new check job"
         assert isinstance(job, jobs.Job)
