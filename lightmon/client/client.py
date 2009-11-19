@@ -84,7 +84,7 @@ class Client(object):
             return
             
         # run the real job
-        self.logger.info("run [%s/%d]" % (self.jobs[jobnum].name, jobnum))
+        self.logger.info("run [%s/%d]" % (self.jobs[jobnum], jobnum))
         runjob = RunningJob(self.jobs[jobnum])
         runjob.start()
 
