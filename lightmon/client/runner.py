@@ -1,5 +1,6 @@
 import logging
 import sys
+import time
 
 from lightmon import config
 from lightmon.client import client
@@ -12,6 +13,7 @@ def run():
 
     logging.basicConfig(filename=config.LOGGING_FILE,
                         level=config.LOGGING_LEVEL)
+    logger = logging.getLogger(__name__)
 
     cl = client.Client()
 
@@ -27,4 +29,5 @@ def run():
     try:
         cl.run()
     except KeyboardInterrupt:
+        logger.info("closing client at %s" % time.asctime())
         sys.stderr.write("goodbye Captain\n")
