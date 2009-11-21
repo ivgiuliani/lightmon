@@ -10,13 +10,13 @@ import sched
 import time
 
 from lightmon import config
-from lightmon import jobs
+from lightmon.jobs import basejob
 
 class RunningJob(object):
     "A job that is running in memory"
 
     def __init__(self, job):
-        assert isinstance(job, jobs.Job)
+        assert isinstance(job, basejob.Job)
 
         self.job = job
         self.running_since = time.time()
@@ -61,7 +61,7 @@ class Client(object):
 
     def addJob(self, job):
         "Add a new check job"
-        assert isinstance(job, jobs.Job)
+        assert isinstance(job, basejob.Job)
 
         if self.removed_jobs_idx:
             # reuse idx if possible
@@ -93,6 +93,10 @@ class Client(object):
         runjob.start()
 
         # TODO: process the result
+        self.logger.debug("job [%s/%d] returned %s" % (
+            self.jobs[jobnum],
+            jobnum,
+            runjob.getResult()))
 
         # reschedule the job if requested
         if self.jobs[jobnum].repeat:

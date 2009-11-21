@@ -3,7 +3,7 @@ import sys
 
 from lightmon import config
 from lightmon.client import client
-from lightmon.jobs import DummyJob
+from lightmon.jobs.basejob import DummyJob
 
 def run():
     """
