@@ -20,7 +20,7 @@ def run():
     job = basejob.DummyJob("test job", delay=10, repeat=True)
     cl.addJob(job)
 
-    job = web.HttpStatusCodeCheckJob(
+    job = web.HTTPStatusCodeCheckJob(
             name="check google homepage",
             url="http://google.com",
             delay=5, repeat=True)

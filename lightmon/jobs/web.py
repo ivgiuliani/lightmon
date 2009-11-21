@@ -6,17 +6,17 @@ from lightmon.jobs.basejob import Job
 
 import urllib2
 
-class HttpStatusCodeCheckJob(Job):
+class HTTPStatusCodeCheckJob(Job):
     "Makes a HTTP request and checks that the HTTP code returned is `code`"
 
     def __init__(self, url, code=200, timeout=5, *args, **kwargs):
         """
-        Initialize a HttpCodeCheck object. Parameters are:
+        Initialize a HTTPCodeCheck object. Parameters are:
         @url = url to check
         @code = http code to compare
         @timeout = go in timeout after `timeout` seconds
         """
-        super(HttpStatusCodeCheckJob, self).__init__(*args, **kwargs)
+        super(HTTPStatusCodeCheckJob, self).__init__(*args, **kwargs)
         self.url = url
         self.code = code
         self.timeout = timeout
