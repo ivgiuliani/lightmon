@@ -3,7 +3,7 @@ import sys
 
 from lightmon import config
 from lightmon.client import client
-from lightmon.jobs.basejob import DummyJob
+from lightmon.jobs import basejob, web
 
 def run():
     """
@@ -15,7 +15,13 @@ def run():
 
     cl = client.Client()
 
-    job = DummyJob("test job", delay=10, repeat=True)
+    job = basejob.DummyJob("test job", delay=10, repeat=True)
+    cl.addJob(job)
+
+    job = web.HttpStatusCodeCheckJob(
+            name="check google homepage",
+            url="http://google.com",
+            delay=5, repeat=True)
     cl.addJob(job)
 
     try:
