@@ -12,6 +12,12 @@ class SimpleJob(basejob.Job):
 
 
 class TestJob(unittest.TestCase):
+    def testRun(self):
+        "run() should raise a NotImplementedError if not overriden"
+        class X(basejob.Job): pass
+        x = X(name="test")
+        self.failUnlessRaises(NotImplementedError, x.run)
+
     def testRepr(self):
         "Test that repr() always returns a consistent format"
 
