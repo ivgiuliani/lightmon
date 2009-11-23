@@ -36,7 +36,7 @@ class Job(object):
         return u"<Job(name=%(name)s, delay=%(delay)s, repeat=%(repeat)s>" % {
             'name': self.name,
             'delay': self.delay,
-            'repeat': 'true' if self.repeat else 'false',
+            'repeat': 'True' if self.repeat else 'False',
         }
 
 class DummyJob(Job):
